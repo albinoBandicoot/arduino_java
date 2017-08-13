@@ -222,26 +222,34 @@ public class Lexer {
 	public Token getToken () throws LexerException {
 		Token t;
 		if (skipSpace()) return new Token ("", Toktype.EOF, marker());
-		if (on("//")) {
-			System.out.println ("Found comment.");
-			read.nextline();
-			peek.nextline();
-			if (skipSpace()) return new Token ("", Toktype.EOF, marker());
-		}
-		peek.set(read);
-		if (on("/*")) {
-			int c;
-			while (!peek.eof) {
-				if (peek.read() == '*') {
-					if (peek.read() == '/') {
-						break;
+		boolean foundComment = false;
+		while (true) {
+			foundComment = false;
+			if (on("//")) {
+				foundComment = true;
+				System.out.println ("Found comment.");
+				read.nextline();
+				peek.nextline();
+				if (skipSpace()) return new Token ("", Toktype.EOF, marker());
+			}
+			peek.set(read);
+			if (on("/*")) {
+				foundComment = true;
+				int c;
+				while (!peek.eof) {
+					if (peek.read() == '*') {
+						if (peek.read() == '/') {
+							break;
+						}
 					}
 				}
+				if (peek.eof) throw new LexerException ("Unclosed block comment starting at " + read);
+				read.set(peek);
 			}
-			if (peek.eof) throw new LexerException ("Unclosed block comment starting at " + read);
-			read.set(peek);
+			peek.set(read);
+			if (skipSpace()) return new Token ("", Toktype.EOF, marker());
+			if (!foundComment) break;
 		}
-		peek.set(read);
 
 		if (peek.get() == '"') {	// string literal
 			peek.advance();
@@ -371,6 +379,7 @@ public class Lexer {
 			return new Token (id, Toktype.ID, marker());
 		}
 
+		Log.error ("Returning null token at " + marker());
 		return null;
 	}
 
