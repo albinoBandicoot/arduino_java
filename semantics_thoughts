@@ -1,11 +1,11 @@
 Parser todos:
 - casts and () in lvalues
 - switch statements
-- n-ary ops?
-- static vars in methods?
-- multiple static/instance init blocks?
+x n-ary ops?
+x static vars in methods?
+* multiple static/instance init blocks?
 - handling implicit parameter of instance methods
-- foreach?
+x foreach?
 
 
 (1) * Resolve Klass placeholders
@@ -23,22 +23,23 @@ Things to do in/before semantics:
 	- java standard library stuff, like String (which is special), Math, perhaps some others
 	- Arduino stuff: Serial class, various methods (pinMode, etc.)
 	
-+ build symbol tables
+* build symbol tables
 * resolve class placeholders to point to Klass objects
 + deduce types of expressions
-+ name resolution (incl. overloading)
-	- instance method calls point to declared type; may be overridden.
+	- aggregates
+* name resolution (incl. overloading)
+	> instance method calls point to declared type; may be overridden.
 * resolve class name vs. variable identifier (Foo.bar(), is Foo a class name or a variable? variable names take precedence)
-- verify assignments, returns, operator arguments, and function call parameters have correct types; insert implicit conversions
+* verify assignments, returns, operator arguments, and function call parameters have correct types; insert implicit conversions
 - verify types of aggregate elements, and that aggregate rank matches declaration
 - check that all paths in a non-void function terminated in a return statement
-- create parent pointers?
+* create parent pointers
 - identify block for break and continue
 - check that all abstract methods are implemented in subclasses
 - check that final methods are not overridden
 - check that final variables are not assigned to
-- check access restrictions
-- check for declarations of 'this' and 'super'
+* check access restrictions
+* check for declarations of 'this' and 'super'
 - check for presence of no more than one loop() or setup(), and at least one of either.
 * check for loops in class hierarchy
 - check for overloaded ISRs

@@ -16,6 +16,10 @@ public abstract class Type {
 			return t == this;
 		}
 
+		public Type resolveKlassPlaceholders (Tree loc) throws CompilerException {
+			return this;
+		}
+
 		public int implicitConversionSteps (Type t) {
 			return -1;
 		}
@@ -51,6 +55,7 @@ public abstract class Type {
 		return implicitConversionSteps(t) >= 0;
 	}
 
+	public abstract Type resolveKlassPlaceholders (Tree loc)throws CompilerException ;
 	public abstract int implicitConversionSteps (Type t) ;	
 	public abstract boolean canCastTo (Type t) ;
 

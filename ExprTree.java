@@ -60,16 +60,8 @@ public class ExprTree extends Tree {
 	}
 
 	public void resolveKlassPlaceholders () throws CompilerException {
-		if (dtype != null && dtype instanceof Klass) {
-			Klass k = Compiler.findKlass (dtype.name());
-			if (k == null) Log.error( new SemanticException ("Could not resolve class name " + dtype.name()));
-			dtype = k;
-		}
-		if (cast_type != null && cast_type instanceof Klass) {
-			Klass k = Compiler.findKlass (cast_type.name());
-			if (k == null) Log.error( new SemanticException ("Could not resolve class name " + cast_type.name()));
-			cast_type = k; //Compiler.findKlass (cast_type.name());
-		}
+		if (dtype != null) dtype = dtype.resolveKlassPlaceholders(this);
+		if (cast_type != null) cast_type = cast_type.resolveKlassPlaceholders(this);
 		if (left != null) left.resolveKlassPlaceholders ();
 		if (right != null) right.resolveKlassPlaceholders ();
 		if (params != null) params.resolveKlassPlaceholders ();
@@ -85,8 +77,18 @@ public class ExprTree extends Tree {
 			}
 			if (enclosingFunc() != null) return enclosingFunc().isStatic;
 		}
+		// FIXME this is a terrible way to check for whether we're in an instance initializer
+		Tree ii = Compiler.currClass.inst_init;
+		Tree t = this;
+		while (t != null) {
+			Tree i = ii;
+			while (i != null) {
+				if (i == t) return false;
+				i = i.next;
+			}
+			t = t.parent;
+		}
 		return true;
-		// what about instance initializer?
 	}
 
 	public void resolveNames (VarST vars, FuncST funcs) throws CompilerException {

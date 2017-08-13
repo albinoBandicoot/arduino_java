@@ -17,7 +17,7 @@ public class Klass extends Type {
 	}
 
 	public String toString () {
-		return name;
+		return name + (definition == null ? "!!!":"");
 	}
 
 	public String name () {
@@ -42,7 +42,9 @@ public class Klass extends Type {
 	}
 
 	public boolean isAncestorOf (Klass k) {
+		Log.write ("Checking if " + this + " is an ancestor of " + k);
 		while (k != null) {
+			Log.write ("\tChecking if " + k + " is this");
 			if (k == this) return true;
 			k = k.superclass;
 		}
@@ -50,10 +52,17 @@ public class Klass extends Type {
 	}
 
 	public boolean canCastTo (Type t) {
+		Log.warn("Checking castability of " + this + " to " + t);
 		if (t instanceof Klass) {
 			return isAncestorOf((Klass) t) || isDescendantOf((Klass) t);
 		}
 		return false;
+	}
+
+	public Klass resolveKlassPlaceholders (Tree loc) throws CompilerException {
+		Klass k = Compiler.findKlass (name);
+		if (k == null) Log.error (loc.new SemanticException("Could not resolve class name " + name));
+		return k;
 	}
 
 	// checks for loops in the class heirarchy

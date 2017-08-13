@@ -23,9 +23,11 @@ public class Log {
 
 	public static void warn (String s) {
 		if (WARN >= level) {
+			bold(true);
 			setColor (YELLOW);
 			System.out.println ("Warning: " + s);
 			setColor (DEFAULT);
+			bold(false);
 		}
 	}
 

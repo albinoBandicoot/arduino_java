@@ -31,12 +31,15 @@ public class DeclTree extends Tree {
 	public String repr (int d) {
 		StringBuffer sb = new StringBuffer (indent(d));
 		sb.append(type + ": " + vis + (isStatic ? " static " : " ") + (ext == null ? "" : ext + " ") + dtype + " " + name + "#" + id);
-		if (dtype instanceof Klass) {
-			sb.append (" STs: " + ((Klass) dtype).fields + "; " + ((Klass) dtype).methods + "\n");
+		if (dtype instanceof Klass && type == Treetype.CLASSDEC) {
+			Klass k = (Klass) dtype;
+			sb.append (" extends " + (k.superclass == null ? "_|_" : k.superclass) + "; " + k.fields + "; " + k.methods + "\n");
 		} else {
 			sb.append ("\n");
 		}
 		if (params != null) sb.append ("p>" + params.repr(d+1));
+		if (static_init != null) sb.append ("SI>" + static_init.repr(d+1));
+		if (inst_init != null) sb.append ("II>" + inst_init.repr(d+1));
 		if (body != null) sb.append ("b>" + body.repr(d+1));
 		if (next != null) sb.append (next.repr(d));
 		return sb + "";
@@ -110,6 +113,8 @@ public class DeclTree extends Tree {
 		if (body != null) body.makeParentLink(this);
 		if (params != null) params.makeParentLink(this);
 		if (next != null) next.makeParentLink(p);
+		if (static_init != null) static_init.makeParentLink(this);
+		if (inst_init != null) inst_init.makeParentLink(this);
 	}
 
 	public void resolveKlassPlaceholders () throws CompilerException {
@@ -121,11 +126,7 @@ public class DeclTree extends Tree {
 				k.superclass = par;
 			}
 		} else {
-			if (dtype != null && dtype instanceof Klass) {
-				Klass k = Compiler.findKlass (dtype.name());
-				if (k == null) Log.error(new SemanticException ("Could not resolve class name " + dtype.name()));
-				dtype = k;
-			}
+			if (dtype != null) dtype = dtype.resolveKlassPlaceholders(this);
 		}
 		if (body != null) body.resolveKlassPlaceholders ();
 		if (params != null) params.resolveKlassPlaceholders ();

@@ -18,7 +18,13 @@ public class Array extends Type {
 		return -1;
 	}
 
+	public Type resolveKlassPlaceholders (Tree loc) throws CompilerException {
+		basetype = basetype.resolveKlassPlaceholders(loc);
+		return this;
+	}
+
 	public boolean canCastTo (Type t) {
+		Log.warn("Checking castability of " + this + " to " + t);
 		if (t instanceof Array) {
 			return basetype.canCastTo (((Array) t).basetype);
 		}

@@ -74,6 +74,10 @@ public final class Primitive extends Type {
 		return t instanceof Primitive;
 	}
 
+	public Type resolveKlassPlaceholders (Tree loc) throws CompilerException {
+		return this;
+	}
+
 	public int implicitConversionSteps (Type t) {
 		if (this == t) return 0;
 		if (!(t instanceof Primitive)) return -1;

@@ -117,17 +117,17 @@ public class Parser {
 
 	public Tree declist (DeclTree cd) throws CompilerException {
 		Chain list = new Chain();
+		Chain statinit = new Chain();
+		Chain instinit = new Chain();
 		while (!on(Toktype.RBRACE) && !on(Toktype.EOF)) {
 			// static or instanec initialization block
 			if (on(Toktype.STATIC) && next.type == Toktype.LBRACE || on(Toktype.LBRACE)) {
 				boolean st = ona (Toktype.STATIC);
 				Tree b = block();
 				if (st) {
-					if (cd.static_init != null) Log.fatal(new ParserException ("Only one static initialization block per class allowed"));
-					cd.static_init = b;
+					statinit.add (b);
 				} else {
-					if (cd.inst_init != null) Log.fatal(new ParserException ("Only one object initialization block per class allowed"));
-					cd.inst_init = b;
+					instinit.add (b);
 				}
 				continue;
 			}
@@ -189,6 +189,8 @@ public class Parser {
 			}
 		}
 		if (on(Toktype.EOF)) Log.error(new ParserException ("Hit end of file looking for }"));
+		cd.static_init = statinit.base;
+		cd.inst_init = instinit.base;
 		return list.base;
 	}
 
@@ -214,7 +216,7 @@ public class Parser {
 			base = new Klass (tok.lexeme);
 			advance();
 		} else {
-			Log.fatal( new ParserException ("Expecting type or ')' - must start with either a primitive type or a class ID"));
+			Log.fatal( new ParserException ("Expecting type - must start with either a primitive type or a class ID"));
 		}
 		Type arr = base;
 		while (ona(Toktype.LBRACK)) {
@@ -466,7 +468,7 @@ public class Parser {
 							advance();
 							p.left = En(10);
 							return p;
-						} else if (on(Toktype.LPAREN)) {	// typecast
+						} else if (on(Toktype.LPAREN)) {	// typecast -- maybe. Or could be a parenthesized expr.
 							ExprTree p = new ExprTree (Treetype.CAST);
 							advance();
 							p.cast_type = type();

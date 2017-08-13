@@ -227,7 +227,7 @@ public class Lexer {
 			foundComment = false;
 			if (on("//")) {
 				foundComment = true;
-				System.out.println ("Found comment.");
+				//System.out.println ("Found comment.");
 				read.nextline();
 				peek.nextline();
 				if (skipSpace()) return new Token ("", Toktype.EOF, marker());
