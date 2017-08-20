@@ -50,6 +50,10 @@ Things to do in/before semantics:
 - constructors calling other constructors with this() and super()
 - using super.foo() to access superclass methods
 
+Bugs:
+- isStaticContext is implemented crappily. it works though
+
+
 Optimization:
 
 - determine whether any subclasses override each method (easy for final methods, final classes)

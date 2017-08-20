@@ -12,7 +12,16 @@ public class StmtTree extends Tree {
 
 	public class Case {
 		public Token value;	// must be a literal
-		public StmtTree body;
+		public Tree body;	// this will be a single BLOCK StmtTree
+
+		public Case (Token t) {
+			value = t;
+		}
+
+		public String repr (int d) {
+			return indent(d) + "CASE " + value + ":\n";
+		}
+
 	}
 
 	public StmtTree (Treetype t) {
@@ -30,10 +39,22 @@ public class StmtTree extends Tree {
 	public String repr (int d) {
 		StringBuffer sb = new StringBuffer (indent(d));
 		sb.append(type + (block_locals != null ? " " + block_locals : "") + "\n");
-		for (Tree t : ch) {
-			sb.append (t == null ? "null\n" : t.repr(d+1));
+		if (type == Treetype.SWITCH) {
+			sb.append (ch.get(0).repr(d+1));
+			if (cases.isEmpty()) return sb + "";
+			for (int i=0; i < cases.size(); i++) {
+				Case c = cases.get(i);
+				sb.append (c.repr(d+1));
+				Tree nextbod = i == cases.size()-1 ? null : cases.get(i+1).body;
+				if (c.body != nextbod) {
+					sb.append (c.body.repr(d+2));
+				}
+			}
+		} else {
+			for (Tree t : ch) {
+				sb.append (t == null ? "null\n" : t.repr(d+1));
+			}
 		}
-		// do something for cases.
 		if (next != null) sb.append(next.repr(d));
 		return sb + "";
 	}
@@ -60,6 +81,27 @@ public class StmtTree extends Tree {
 		} else {
 			for (Tree c : ch) {
 				c.resolveNames (vars, funcs);
+			}
+		}
+		if (type == Treetype.SWITCH) {
+			Type t = ((ExprTree) ch.get(0)).dtype;
+			if (!(t.isIntegral() || t == Type.string)) Log.error (new SemanticException("Expression to switch on must have an integral or string type"));
+			if (t == Type.string) {
+				HashSet<String> labels = new HashSet<>();
+				for (Case c : cases) {
+					if (c.value.type != Toktype.STR_LIT) Log.error (new SemanticException("Case labels type must match switch expression type"));
+					String lab = c.value.lexeme;
+					if (labels.contains(lab)) Log.error (new SemanticException("Duplicate case label: " + lab));
+					labels.add(lab);
+				}
+			} else {
+				HashSet<Long> labels = new HashSet<>();
+				for (Case c : cases) {
+					Long lab = c.value.integralValue();
+					if (c.value.type != Toktype.INT_LIT && c.value.type != Toktype.CHAR_LIT) Log.error (new SemanticException("Case labels type must match switch expression type"));
+					if (labels.contains(lab)) Log.error (new SemanticException("Duplicate case label: " + lab));
+					labels.add(lab);
+				}
 			}
 		}
 		if (type == Treetype.RETURN) {	// check return expression type matches that in function declaration

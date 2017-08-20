@@ -1,3 +1,4 @@
+import java.util.*;
 public class Parser {
 
 	public static Parser currentParser = null;
@@ -398,9 +399,58 @@ public class Parser {
 		return t;
 	}
 
-	public Tree switch_stmt () throws CompilerException {
+	public StmtTree switch_stmt () throws CompilerException {
 		StmtTree t = new StmtTree (Treetype.SWITCH);
-		return null;
+		if (!ona(Toktype.LPAREN)) Log.fatal(new ParserException ("Expecting ( after switch"));
+		t.ch.add(expr());	// what we're switching on
+		if (!ona(Toktype.RPAREN)) Log.error(new ParserException ("Expecting ) after switch expression"));
+		if (!ona(Toktype.LBRACE)) Log.fatal(new ParserException ("Expecting { after switch"));
+		List<StmtTree.Case> currCases = new ArrayList<>();
+		boolean seenDefault = false;
+		boolean beforeCases = true;
+		StmtTree blk = new StmtTree (Treetype.BLOCK);
+		while (!ona(Toktype.RBRACE)) {
+			if (on(Toktype.CASE) || on(Toktype.DEFAULT)) {
+				blk = new StmtTree (Treetype.BLOCK);
+				beforeCases = false;
+				if (on(Toktype.DEFAULT)) {
+					if (seenDefault) Log.error ("Only one default branch allowed in a switch statement");
+					seenDefault = true;
+					currCases.add (t.new Case(tok));
+					advance();
+					if (!ona(Toktype.COLON)) Log.fatal (new ParserException("Expecting : after case label"));
+				} else {
+					advance();
+					if (tok.type == Toktype.INT_LIT || tok.type == Toktype.CHAR_LIT || tok.type == Toktype.STR_LIT) {
+						currCases.add (t.new Case(tok));
+						advance();
+						if (!ona(Toktype.COLON)) {
+							if (tok.type.isOperator()) Log.fatal(new ParserException("Case labels must be int, char, or string literals"));
+							Log.fatal (new ParserException ("Expecting : after case label"));
+						}
+					} else {
+						Log.fatal (new ParserException("Case labels must be int, char, or string literals"));
+					}
+				}
+			} else {
+				if (beforeCases) {
+					Log.error (new ParserException ("Expecting case, default, or }"));
+					advance();
+					continue;
+				}
+				Tree s = stmt();
+				blk.ch.add (s);
+				for (StmtTree.Case c : currCases) {
+					c.body = blk;
+					t.cases.add (c);
+				}
+				if (!currCases.isEmpty()) {
+					t.ch.add(blk);
+				}
+				currCases.clear();
+			}
+		}
+		return t;
 	}
 
 	public Tree return_stmt () throws CompilerException {

@@ -20,6 +20,12 @@ public class Compiler {
 		Type.objekt.definition = obj;
 		classes.put ("Object", obj);
 
+		DeclTree str = new DeclTree (Treetype.CLASSDEC);
+		str.dtype = Type.string;
+		str.name = "String";
+		Type.string.definition = str;
+		classes.put ("String", str);
+
 		VarST global_vars = new VarST(null, null);
 		FuncST global_funcs = new FuncST (null, null);
 
