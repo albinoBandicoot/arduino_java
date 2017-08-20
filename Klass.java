@@ -8,8 +8,7 @@ public class Klass extends Type {
 
 	public boolean flag;
 
-	public VarST fields;
-	public FuncST methods;
+	public Context ctx;
 
 	public Klass (String name) {	// for making placeholders
 		flag = false;
@@ -79,18 +78,21 @@ public class Klass extends Type {
 
 	// creates the class level symbol tables and links them to the superclass. Fills in the static and instance methods.
 	public void makeSymtables () throws CompilerException {
+		if (ctx != null) return;	// already done
+		Log.warn ("Making symtables for " + name);
 		if (superclass == null) {
-			fields = new VarST (null, this);
-			methods = new FuncST (null, this);
+			ctx = new Context(new VarST(null, this), new FuncST(null, this));
 		} else {
-			fields = new VarST (superclass.fields, this);
-			methods = new FuncST (superclass.methods, this);
+			if (superclass.ctx == null) {
+				superclass.makeSymtables();
+			}
+			ctx = new Context(new VarST (superclass.ctx.vars, this), new FuncST (superclass.ctx.funcs, this));
 		}
 		Tree t = definition.body;
 		while (t != null) {
 			/* Only add functions now. Variable declarations (and recursing into functions) must be done later. */
 			if (t.type == Treetype.FUNDEC) {
-				methods.add ((DeclTree) t);
+				ctx.funcs.add ((DeclTree) t);
 			}
 			t = t.next;
 		}
@@ -102,9 +104,9 @@ public class Klass extends Type {
 		while (t != null) {
 			if (t.type == Treetype.VARDEC) {
 				DeclTree d = (DeclTree) t;
-				fields.add (d);
+				ctx.vars.add (d);
 				if (d.body != null) {	// has initializer
-					d.body.resolveNames(fields, methods);
+					d.body.resolveNames(ctx);
 				}
 			}
 			t = t.next;

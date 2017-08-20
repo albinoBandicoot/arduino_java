@@ -1,10 +1,11 @@
 Parser todos:
+- fix casts
 - casts and () in lvalues
-- switch statements
+* switch statements
 x n-ary ops?
 x static vars in methods?
 * multiple static/instance init blocks?
-- handling implicit parameter of instance methods
+- handling implicit parameter of instance methods - did I do this?
 x foreach?
 
 
@@ -37,12 +38,13 @@ Things to do in/before semantics:
 - identify block for break and continue
 - check that all abstract methods are implemented in subclasses
 - check that final methods are not overridden
+- check that final classes are not extended
 - check that final variables are not assigned to
 * check access restrictions
 * check for declarations of 'this' and 'super'
 - check for presence of no more than one loop() or setup(), and at least one of either.
-* check for loops in class hierarchy
 - check for overloaded ISRs
+* check for loops in class hierarchy
 - check for use of uninitialized variables
 
 - check no aggregate assignment not in an initializer

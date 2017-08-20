@@ -25,7 +25,7 @@ public class VarST extends Symtable {
 	public void add (DeclTree d) throws CompilerException {
 		String s = d.name;
 		if (d.type != Treetype.VARDEC) throw new InternalError ("Adding a non-VARDEC to a VarST");
-		if (entries.get(s) != null) throw d.new SemanticException ("Double-declaration of variable " + s);
+		if (entries.get(s) != null) Log.error(d.new SemanticException ("Double-declaration of variable " + s));
 		entries.put (s,d);
 		d.scope = this;
 		Log.write ("Added " + d + " to " + this);

@@ -91,9 +91,11 @@ public class ExprTree extends Tree {
 		return true;
 	}
 
-	public void resolveNames (VarST vars, FuncST funcs) throws CompilerException {
+
+	public void resolveNames (Context ctx, boolean dotchain) throws CompilerException {
 		System.out.println("  > resolveNames() on " + this);
-		if (left != null) left.resolveNames(vars, funcs);	
+		if (params != null)	params.resolveNames(ctx, false);
+		if (left != null)   left.resolveNames(ctx, dotchain);	
 		if (op != null && op.type == Toktype.DOT) {
 			Type t = left.dtype;
 			if (t == null) Log.fatal( new InternalError ("Dtype not assigned"));
@@ -102,9 +104,9 @@ public class ExprTree extends Tree {
 				if (k == Type.klass) {
 					Klass c = (Klass) left.definition.dtype;
 					System.out.println("*** found " + c);
-					if (right != null) right.resolveNames (c.fields, c.methods);
+					if (right != null) right.resolveNames (ctx.setChainClass(c), true);
 				} else {
-					if (right != null) right.resolveNames (k.fields, k.methods);
+					if (right != null) right.resolveNames (ctx.setChainClass(k), true);
 				}
 			} else if (t instanceof Array) {
 				Log.write ("Array attribute reference not yet supported");
@@ -112,29 +114,27 @@ public class ExprTree extends Tree {
 			} else Log.error( new SemanticException ("Cannot reference field of primitive type"));
 
 		} else {
-			if (right != null) right.resolveNames(vars, funcs);	
+			if (right != null) right.resolveNames(ctx, dotchain);	
 		}
-
-		if (params != null) params.resolveNames(vars, funcs);	
 
 		switch (type) {
 			case ID:
 				if (parent.type == Treetype.FUNCALL && this == ((ExprTree) parent).left) {	// the function name, not in a param
 					if (name.equals("this")) {
-						definition = resolveFunction (((Klass) Compiler.currClass.dtype).methods.lookupConstructor());
+						definition = resolveFunction (((Klass) Compiler.currClass.dtype).ctx.funcs.lookupConstructor());
 						if (isStaticContext()) Log.error( new SemanticException ("Cannot reference 'this' from static context"));
 					} else if (name.equals("super")) {
-						definition = resolveFunction (((Klass) Compiler.currClass.dtype).superclass.methods.lookupConstructor());
+						definition = resolveFunction (((Klass) Compiler.currClass.dtype).superclass.ctx.funcs.lookupConstructor());
 						if (isStaticContext()) Log.error( new SemanticException ("Cannot reference 'super' from static context"));
 					} else {
-						definition = ((ExprTree) parent).resolveFunction (funcs.lookup(name));
+						definition = ((ExprTree) parent).resolveFunction (ctx.lookupFunc(name, dotchain));
 						if (isStaticContext() && !definition.isStatic) Log.error( new SemanticException ("Cannot call non-static function " + name + " from a static context"));
 					}
-					if (!definition.accessOK()) Log.error( new SemanticException (name + " has private access and cannot be referenced from this context"));
+					if (!definition.accessOK()) Log.error( new SemanticException (name + " has " + definition.vis + " access and cannot be referenced from this context"));
 					dtype = definition.dtype;
 				} else { 	//if (parent.type == Treetype.OP && ((ExprTree) parent).op.type == Toktype.DOT) {
 					// IDs that are direct children of DOTs are variables.
-					definition = vars.lookup(name);
+					definition = ctx.lookupVar(name, dotchain); 
 					if (definition == null) {
 						// might be a Class name
 						Klass k = Compiler.findKlass (name);
@@ -169,7 +169,7 @@ public class ExprTree extends Tree {
 				dtype = cast_type;
 				if (dtype instanceof Klass) {
 					// resolve constructor: note this has to be in just the ST for the class, not its parents
-					definition = resolveFunction (((Klass) dtype).methods.lookupConstructor());
+					definition = resolveFunction (((Klass) dtype).ctx.funcs.lookupConstructor());
 					if (!definition.accessOK()) Log.error( new SemanticException (dtype + " constructor has private access and cannot be referenced from this context"));
 				}
 				break;
@@ -192,7 +192,7 @@ public class ExprTree extends Tree {
 				Log.fatal( new InternalError ("Uncovered treetype: " + type));
 		}
 
-		if (next != null) next.resolveNames(vars, funcs);	
+		if (next != null) next.resolveNames(ctx, false);
 	}
 
 	public DeclTree resolveFunction (List<DeclTree> decs) throws CompilerException {
@@ -210,6 +210,8 @@ public class ExprTree extends Tree {
 			DeclTree dp = d.params;
 			int totalSteps = 0;
 			while (p != null) {
+				if (p.dtype == null) Log.fatal ("p.dtype null for " + p);
+				if (dp.dtype == null) Log.fatal ("dp.dtype null for " + p);
 				int convSteps = p.dtype.implicitConversionSteps (dp.dtype);
 				System.out.println("\t\tCsteps: " + convSteps);
 				if (convSteps == -1) break;

@@ -33,7 +33,7 @@ public class DeclTree extends Tree {
 		sb.append(type + ": " + vis + (isStatic ? " static " : " ") + (ext == null ? "" : ext + " ") + dtype + " " + name + "#" + id);
 		if (dtype instanceof Klass && type == Treetype.CLASSDEC) {
 			Klass k = (Klass) dtype;
-			sb.append (" extends " + (k.superclass == null ? "_|_" : k.superclass) + "; " + k.fields + "; " + k.methods + "\n");
+			sb.append (" extends " + (k.superclass == null ? "_|_" : k.superclass) + "; " + k.ctx.vars + "; " + k.ctx.funcs + "\n");
 		} else {
 			sb.append ("\n");
 		}
@@ -135,19 +135,19 @@ public class DeclTree extends Tree {
 		if (next != null) next.resolveKlassPlaceholders ();
 	}
 
-	public void resolveNames (VarST vars, FuncST funcs) throws CompilerException {
+	public void resolveNames (Context ctx, boolean dotchain) throws CompilerException {
 		System.out.println(">> ResolveNames on " + this);
 		switch (type) {
 			case VARDEC:
 				if (name.equals("this") || name.equals("super")) Log.error( new SemanticException ("'" + name + "' is a reserved word and cannot be used as an identifier"));
-				vars.add (this);
-				if (body != null) body.resolveNames (vars, funcs);
+				ctx.vars.add (this);
+				if (body != null) body.resolveNames (ctx);
 				break;
 			case FUNDEC:
 				if (name.equals("this") || name.equals("super")) Log.error( new SemanticException ("'" + name + "' is a reserved word and cannot be used as an identifier"));
-				VarST locals = new VarST (vars);
+				VarST locals = new VarST (ctx.vars);
 				if (params != null) {
-					params.resolveNames(locals, funcs);
+					params.resolveNames(new Context(locals, ctx.funcs));
 				}
 				if (!isStatic) {
 					DeclTree thisTree = new DeclTree (Treetype.VARDEC);
@@ -159,19 +159,19 @@ public class DeclTree extends Tree {
 					locals.add (thisTree);
 					locals.add (superTree);
 				}
-				if (body != null) body.resolveNames(locals, funcs);
+				if (body != null) body.resolveNames(new Context(locals, ctx.funcs));
 				break;
 			case CLASSDEC:
 				if (name.equals("this") || name.equals("super")) Log.error( new SemanticException ("'" + name + "' is a reserved word and cannot be used as a class name"));
 				// symbol tables for fields and methods of the class have already been made and populated.
-				if (body != null) body.resolveNames (vars, funcs);
-				if (static_init != null) static_init.resolveNames (vars, funcs);
-				if (inst_init != null) inst_init.resolveNames (vars, funcs);
+				if (body != null) body.resolveNames (ctx);
+				if (static_init != null) static_init.resolveNames (ctx);
+				if (inst_init != null) inst_init.resolveNames (ctx);
 				break;
 			default:
 				Log.fatal(new InternalError ("DeclTree of non *DEC type"));
 		}
-		if (next != null) next.resolveNames(vars, funcs);
+		if (next != null) next.resolveNames(ctx);
 	}
 
 	public boolean accessOK () {

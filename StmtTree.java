@@ -72,15 +72,15 @@ public class StmtTree extends Tree {
 		if (next != null) next.resolveKlassPlaceholders();
 	}
 
-	public void resolveNames (VarST vars, FuncST funcs) throws CompilerException {
+	public void resolveNames (Context ctx, boolean dotchain) throws CompilerException {
 		if (type == Treetype.BLOCK || type == Treetype.FOR) {	// FOR included b/c the initializer can declare variables
-			block_locals = new VarST(vars);
+			block_locals = new VarST(ctx.vars);
 			for (Tree c : ch) {
-				c.resolveNames (block_locals, funcs);
+				c.resolveNames (new Context(block_locals, ctx.funcs));
 			}
 		} else {
 			for (Tree c : ch) {
-				c.resolveNames (vars, funcs);
+				c.resolveNames (ctx);
 			}
 		}
 		if (type == Treetype.SWITCH) {
@@ -116,6 +116,6 @@ public class StmtTree extends Tree {
 				Log.error(new SemanticException ("Attempting to return " + e + " from " + ((DeclTree) p).name + ", which returns " + t));
 			} 
 		}
-		if (next != null) next.resolveNames (vars, funcs);
+		if (next != null) next.resolveNames (ctx);
 	}
 }

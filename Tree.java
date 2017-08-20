@@ -54,6 +54,10 @@ public abstract class Tree {
 	/* Semantics methods */
 	public abstract void makeParentLink (Tree p);
 	public abstract void resolveKlassPlaceholders ()throws CompilerException ;
-	public abstract void resolveNames (VarST vars, FuncST funcs) throws CompilerException;
+	public abstract void resolveNames (Context ctx, boolean dotchain) throws CompilerException;
+
+	public void resolveNames (Context ctx) throws CompilerException {
+		resolveNames (ctx, false);
+	}
 
 }

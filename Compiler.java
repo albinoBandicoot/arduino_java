@@ -59,7 +59,7 @@ public class Compiler {
 		for (DeclTree d : classes.values()) {
 			currClass = d;
 			Klass k = d.classType();
-			d.resolveNames (k.fields, k.methods);
+			d.resolveNames (k.ctx);
 		}
 		System.out.println (classes.get("Test").repr(0));
 		System.out.println (classes.get("Foo").repr(0));
