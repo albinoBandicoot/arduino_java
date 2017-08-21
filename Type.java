@@ -16,12 +16,22 @@ public abstract class Type {
 			return t == this;
 		}
 
+		public Type merge (Type t) {
+			Log.warn ("Merging Void type");
+			if (t instanceof Void) return this;
+			return null;
+		}
+
 		public Type resolveKlassPlaceholders (Tree loc) throws CompilerException {
 			return this;
 		}
 
 		public int implicitConversionSteps (Type t) {
 			return -1;
+		}
+
+		public String toString () {
+			return "void";
 		}
 	}
 
@@ -58,6 +68,7 @@ public abstract class Type {
 	public abstract Type resolveKlassPlaceholders (Tree loc)throws CompilerException ;
 	public abstract int implicitConversionSteps (Type t) ;	
 	public abstract boolean canCastTo (Type t) ;
+	public abstract Type merge (Type t) ;
 
 	public final boolean isNumeric () {
 		if (this instanceof Primitive) {

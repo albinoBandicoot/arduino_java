@@ -54,6 +54,7 @@ public class Compiler {
 			d.makeParentLink (null);
 		}
 		Log.nextPhase();
+		System.out.println (classes.get("Test").repr(0));
 //		System.out.println ("Symbol table for functions for class Test: " + findKlass("Test").methods.repr());
 
 		for (DeclTree d : classes.values()) {

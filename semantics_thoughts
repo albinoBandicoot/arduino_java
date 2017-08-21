@@ -43,14 +43,14 @@ Things to do in/before semantics:
 * check access restrictions
 * check for declarations of 'this' and 'super'
 - check for presence of no more than one loop() or setup(), and at least one of either.
-- check for overloaded ISRs
+- check for overloaded ISRs / funcs with ISR name that aren't thunks / aren't static
 * check for loops in class hierarchy
 - check for use of uninitialized variables
 
 - check no aggregate assignment not in an initializer
 
-- constructors calling other constructors with this() and super()
-- using super.foo() to access superclass methods
+* constructors calling other constructors with this() and super()
+* using super.foo() to access superclass methods
 
 Bugs:
 - isStaticContext is implemented crappily. it works though

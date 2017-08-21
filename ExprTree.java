@@ -170,13 +170,16 @@ public class ExprTree extends Tree {
 				if (dtype instanceof Klass) {
 					// resolve constructor: note this has to be in just the ST for the class, not its parents
 					definition = resolveFunction (((Klass) dtype).ctx.funcs.lookupConstructor());
-					if (!definition.accessOK()) Log.error( new SemanticException (dtype + " constructor has private access and cannot be referenced from this context"));
+					if (!definition.accessOK()) Log.error( new SemanticException (dtype + " constructor has " + definition.vis + " access and cannot be referenced from this context"));
+				} else if (dtype instanceof Array) {
+					if (left != null && left.type == Treetype.AGG) checkAggregate (left, dtype);
 				}
 				break;
 			case VALUE:
 				dtype = Type.literalType (op);
 				break;
 			case AGG:
+				/*
 				ExprTree e = left;
 				if (! (dtype instanceof Array)) Log.fatal( new InternalError ("Aggregate has non-array type?!"));
 				Array arr = (Array) dtype;
@@ -184,6 +187,7 @@ public class ExprTree extends Tree {
 					if (e.dtype != arr.basetype) Log.error( new SemanticException ("Aggregate element has wrong type (" + e.dtype + "); should be " + arr.basetype));
 					e = (ExprTree) e.next;
 				}
+				*/
 				break;
 			case FUNCALL:
 				dtype = left.dtype;
@@ -332,23 +336,57 @@ public class ExprTree extends Tree {
 				return ((Array) left.dtype).basetype;
 
 			case ASSIGN:
+				if (right.type == Treetype.AGG) {
+					checkAggregate (right, left.dtype);
+					break;
+				}
 				if (right.dtype.isImplicitlyConvertibleTo(left.dtype)) return left.dtype;
 				Log.error( new SemanticException ("Cannot assign expression of type " + right.dtype + " to variable of type " + left.dtype));
+				break;
+			case INSTANCEOF:
+				dtype = Primitive.BOOLEAN;
+				if (dtype instanceof Primitive || dtype == Type.voyd) Log.error (new SemanticException("Argument to instanceof cannot be a primitive type"));
+				if (!left.dtype.canCastTo(cast_type)) Log.error (new SemanticException("Cannot convert " + left.dtype + " to " + cast_type));
+				break;
 		}
 		Log.fatal( new InternalError ("Unimplemented operator Toktype in resolveOperatorType()"));
 		return null;
 	}
 
-	private static Type resultantNumericType (Type a, Type b) {
-		Primitive pa = (Primitive) a;
-		Primitive pb = (Primitive) b;
-		if (pa.level > pb.level) {
-			if (pa.signed || pb.signed) return pa.signedEquivalent();
-			return pa;
+	private void checkAggregate (Tree agg, Type t) {
+		Log.warn ("Checking aggregate against type " + t);
+		ExprTree e = (ExprTree) agg;
+		Array a = (Array) t;
+		if (a.basetype instanceof Array) {
+			if (((Array) e.dtype).basetype instanceof Array) {
+				ExprTree elem = e.left;
+				while (elem != null) {
+					checkAggregate (elem, a.basetype);
+					elem = (ExprTree) elem.next;
+				}
+			} else {
+				Log.fatal (new SemanticException("Aggregate rank does not match that of array it's being assigned to"));
+			}
 		} else {
-			if (pa.signed || pb.signed) return pb.signedEquivalent();
-			return pb;
+			if (((Array) e.dtype).basetype instanceof Array) {
+				Log.fatal (new SemanticException("Aggregate rank does not match that of array it's being assigned to"));
+			} else {
+				ExprTree elem = e.left;
+				while (elem != null) {
+					if (!elem.dtype.isImplicitlyConvertibleTo(a.basetype)) Log.error (new SemanticException("Aggregate element " + elem + " cannot be converted to " + a.basetype));
+					elem = (ExprTree) elem.next;
+				}
+			}
 		}
+		e.dtype = t;
+	}
+
+	private static Type resultantNumericType (Type a, Type b) {
+		Type t = a.merge(b);
+		if (t == null) {
+			Log.fatal(new InternalError("Cannot merge types " + a + " and " + b));
+		}
+		return t;
 	}
 
 }

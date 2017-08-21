@@ -659,13 +659,24 @@ public class Parser {
 		if (ona(Toktype.LBRACE)) {
 			ExprTree e = new ExprTree (Treetype.AGG);
 			Chain c = new Chain();
+			boolean nested = false;
+			boolean first = true;
 			while (!ona(Toktype.RBRACE)) {
 				if (on(Toktype.LBRACE)) {	// nested aggregate
-					c.add (aggregate());
+					if (!first && !nested) Log.error(new ParserException ("Aggregate contains a mixture of scalar and aggregate entries"));
+					nested = true;
+					c.add(aggregate());
 				} else {
+					if (!first && nested) Log.error(new ParserException ("Aggregate contains a mixture of scalar and aggregate entries"));
 					c.add (expr());
 				}
 				if (ona(Toktype.COMMA)) ;
+				first = false;
+			}
+			if (nested) {
+				e.dtype = new Array(((ExprTree) c.base).dtype);
+			} else {
+				e.dtype = new Array(Type.voyd);	// fill in the actual type later
 			}
 			e.left = (ExprTree) c.base;
 			return e;

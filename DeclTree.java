@@ -141,8 +141,12 @@ public class DeclTree extends Tree {
 			case VARDEC:
 				if (name.equals("this") || name.equals("super")) Log.error( new SemanticException ("'" + name + "' is a reserved word and cannot be used as an identifier"));
 				ctx.vars.add (this);
-				if (body != null) body.resolveNames (ctx);
-				break;
+				if (body != null) {
+					body.resolveNames (ctx);
+					ExprTree e = (ExprTree) body;
+					if (!e.dtype.isImplicitlyConvertibleTo(dtype)) Log.error (new SemanticException("Cannot implicitly convert type " + e.dtype + " to " + dtype));
+					break;
+				}
 			case FUNDEC:
 				if (name.equals("this") || name.equals("super")) Log.error( new SemanticException ("'" + name + "' is a reserved word and cannot be used as an identifier"));
 				VarST locals = new VarST (ctx.vars);

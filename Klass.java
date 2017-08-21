@@ -58,6 +58,15 @@ public class Klass extends Type {
 		return false;
 	}
 
+	public Type merge (Type t) {
+		if (t instanceof Klass) {
+			Klass k = (Klass) t;
+			if (isAncestorOf(k)) return this;
+			if (isDescendantOf(k)) return k;
+		}
+		return null;
+	}
+
 	public Klass resolveKlassPlaceholders (Tree loc) throws CompilerException {
 		Klass k = Compiler.findKlass (name);
 		if (k == null) Log.error (loc.new SemanticException("Could not resolve class name " + name));

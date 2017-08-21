@@ -74,6 +74,21 @@ public final class Primitive extends Type {
 		return t instanceof Primitive;
 	}
 
+	public Type merge (Type t) {
+		if (t instanceof Primitive) {
+			Primitive p = (Primitive) t;
+			if (this == BOOLEAN ^ p == BOOLEAN) return null;
+			if (level > p.level) {
+				if (signed || p.signed) return signedEquivalent();
+				return this;
+			} else {
+				if (signed || p.signed) return p.signedEquivalent();
+				return p;
+			}
+		}
+		return null;
+	}
+
 	public Type resolveKlassPlaceholders (Tree loc) throws CompilerException {
 		return this;
 	}
