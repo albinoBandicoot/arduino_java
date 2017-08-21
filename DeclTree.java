@@ -5,9 +5,9 @@ public class DeclTree extends Tree {
 		PUBLIC, PROTECTED, PRIVATE;
 	}
 
-	private static int ID = 0;
+//	private static int ID = 0;
 
-	public int id;
+//	public int id;
 	public String name;
 	public Vis vis;
 	public boolean isStatic = true;
@@ -23,7 +23,7 @@ public class DeclTree extends Tree {
 
 	public DeclTree (Treetype t) {
 		super(t);
-		id = ++ID;
+//		id = ++ID;
 		vis = Vis.PUBLIC;
 		ext = Type.Ext.REG;
 	}

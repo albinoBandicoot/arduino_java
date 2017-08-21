@@ -7,6 +7,7 @@ x static vars in methods?
 * multiple static/instance init blocks?
 - handling implicit parameter of instance methods - did I do this?
 x foreach?
+- 'native' indicator 
 
 
 (1) * Resolve Klass placeholders
@@ -26,16 +27,15 @@ Things to do in/before semantics:
 	
 * build symbol tables
 * resolve class placeholders to point to Klass objects
-+ deduce types of expressions
-	- aggregates
+* deduce types of expressions
 * name resolution (incl. overloading)
 	> instance method calls point to declared type; may be overridden.
 * resolve class name vs. variable identifier (Foo.bar(), is Foo a class name or a variable? variable names take precedence)
 * verify assignments, returns, operator arguments, and function call parameters have correct types; insert implicit conversions
-- verify types of aggregate elements, and that aggregate rank matches declaration
+* verify types of aggregate elements, and that aggregate rank matches declaration
 - check that all paths in a non-void function terminated in a return statement
 * create parent pointers
-- identify block for break and continue
+* identify block for break and continue
 - check that all abstract methods are implemented in subclasses
 - check that final methods are not overridden
 - check that final classes are not extended

@@ -9,6 +9,7 @@ public class StmtTree extends Tree {
 	
 	public List<Case> cases;
 	public VarST block_locals;	// only for BLOCK statements
+	public Tree enclosingBlock;	// for break and continue
 
 	public class Case {
 		public Token value;	// must be a literal
@@ -38,7 +39,7 @@ public class StmtTree extends Tree {
 
 	public String repr (int d) {
 		StringBuffer sb = new StringBuffer (indent(d));
-		sb.append(type + (block_locals != null ? " " + block_locals : "") + "\n");
+		sb.append(type + (block_locals != null ? " " + block_locals : "") + " [" + id + "]" + (enclosingBlock == null ? "" : " --> " + enclosingBlock.id) + "\n");
 		if (type == Treetype.SWITCH) {
 			sb.append (ch.get(0).repr(d+1));
 			if (cases.isEmpty()) return sb + "";

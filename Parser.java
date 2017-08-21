@@ -9,6 +9,7 @@ public class Parser {
 
 	private Lexer lex;
 	private Token tok, next, pb;
+	private Deque<Tree> block_chain;
 
 	public class ParserException extends CompilerException {
 
@@ -38,6 +39,7 @@ public class Parser {
 		tok = lex.getToken();
 		next = lex.getToken();
 		currentParser = this;
+		block_chain = new LinkedList<>();
 	}
 
 	public boolean on (String s) throws CompilerException {
@@ -258,11 +260,17 @@ public class Parser {
 		if (on(Toktype.LBRACE)) return block();
 		if (ona(Toktype.BREAK)) {
 			if (!ona(Toktype.SEMICOLON)) Log.error(new ParserException ("Expecting semicolon after statement."));
-			return new StmtTree(Treetype.BREAK);
+			StmtTree t = new StmtTree(Treetype.BREAK);
+			if (block_chain.isEmpty()) Log.error(new ParserException ("break outside switch or loop"));
+			t.enclosingBlock = block_chain.peek();
+			return t;
 		}
 		if (ona(Toktype.CONTINUE)) { 
 			if (!ona(Toktype.SEMICOLON)) Log.error(new ParserException ("Expecting semicolon after statement."));
-			return new StmtTree (Treetype.CONTINUE);
+			StmtTree t = new StmtTree(Treetype.CONTINUE);
+			if (block_chain.isEmpty()) Log.error(new ParserException ("continue outside switch or loop"));
+			t.enclosingBlock = block_chain.peek();
+			return t;
 		}
 		if (on(Toktype.INC) || on(Toktype.DEC)) {	// pre-increment/decrement
 			ExprTree e = new ExprTree (Treetype.OP, tok);
@@ -351,15 +359,18 @@ public class Parser {
 
 	public Tree while_stmt () throws CompilerException {
 		StmtTree t = new StmtTree (Treetype.WHILE);
+		block_chain.push(t);
 		if (!ona(Toktype.LPAREN)) Log.fatal(new ParserException ("Expecting ( after 'while'"));
 		t.ch.add(expr());
 		if (!ona(Toktype.RPAREN)) Log.fatal(new ParserException ("Unclosed ) in 'while'"));
 		t.ch.add(block());
+		block_chain.pop();
 		return t;
 	}
 
 	public Tree do_stmt () throws CompilerException {
 		StmtTree t = new StmtTree (Treetype.DO);
+		block_chain.push(t);
 		Tree body = block();
 		if (!ona(Toktype.WHILE)) Log.fatal(new ParserException ("Expecting 'while' after do-loop body"));
 		if (!ona(Toktype.LPAREN)) Log.fatal(new ParserException ("Expecting ( after 'while'"));
@@ -367,11 +378,13 @@ public class Parser {
 		t.ch.add(body);
 		if (!ona(Toktype.RPAREN)) Log.fatal( new ParserException ("Unclosed ) in do-while"));
 		if (!ona(Toktype.SEMICOLON)) Log.error( new ParserException ("Expected semicolon after do-loop condition"));
+		block_chain.pop();
 		return t;
 	}
 
 	public Tree for_stmt () throws CompilerException {
 		StmtTree t = new StmtTree (Treetype.FOR);
+		block_chain.push(t);
 		if (!ona(Toktype.LPAREN)) Log.fatal( new ParserException ("Expecting ( after 'for')"));
 		// can either be an expr or a varinit. Check if we start with a type.
 		Type.Ext ext = ext();
@@ -396,11 +409,13 @@ public class Parser {
 		t.ch.add(expr());	// increment
 		if (!ona(Toktype.RPAREN)) Log.fatal( new ParserException ("Unclosed ) in 'for'"));
 		t.ch.add(block());	// body
+		block_chain.pop();
 		return t;
 	}
 
 	public StmtTree switch_stmt () throws CompilerException {
 		StmtTree t = new StmtTree (Treetype.SWITCH);
+		block_chain.push(t);
 		if (!ona(Toktype.LPAREN)) Log.fatal(new ParserException ("Expecting ( after switch"));
 		t.ch.add(expr());	// what we're switching on
 		if (!ona(Toktype.RPAREN)) Log.error(new ParserException ("Expecting ) after switch expression"));
@@ -450,6 +465,7 @@ public class Parser {
 				currCases.clear();
 			}
 		}
+		block_chain.pop();
 		return t;
 	}
 

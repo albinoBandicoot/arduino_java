@@ -6,6 +6,9 @@ public abstract class Tree {
 	public Tree parent;
 	public DeclTree enclosingFunc;
 	public Marker mark;
+	public int id;
+
+	private static int ID = 0;
 
 	public class SemanticException extends CompilerException {
 		public SemanticException (String mesg) {
@@ -16,6 +19,7 @@ public abstract class Tree {
 	public Tree (Treetype t) {
 		type = t;
 		mark = Parser.getMarker();
+		id = ID++;
 	}
 
 	public abstract String repr (int depth);
