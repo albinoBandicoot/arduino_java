@@ -25,6 +25,7 @@ public class Klass extends Type {
 
 	public int implicitConversionSteps (Type t) {
 		int ct = 0;
+		if (t instanceof Nulltype) return 0;
 		if (t instanceof Klass) {
 			Klass k = this;
 			while (k != null) {
@@ -59,6 +60,7 @@ public class Klass extends Type {
 	}
 
 	public Type merge (Type t) {
+		if (t instanceof Nulltype) return this;
 		if (t instanceof Klass) {
 			Klass k = (Klass) t;
 			if (isAncestorOf(k)) return this;

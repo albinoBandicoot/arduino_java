@@ -21,6 +21,7 @@ public class Array extends Type {
 	}
 
 	public int implicitConversionSteps (Type t) {
+		if (t instanceof Nulltype) return 0;
 		if (t instanceof Array) {
 			Array a = (Array) t;
 			if (rank() == a.rank()) {
@@ -45,6 +46,7 @@ public class Array extends Type {
 	}
 
 	public Type merge (Type t) {
+		if (t instanceof Nulltype) return this;
 		if (t instanceof Array) {
 			return new Array(basetype.merge(((Array) t).basetype));
 		}

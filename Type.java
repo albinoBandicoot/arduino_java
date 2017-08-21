@@ -39,6 +39,7 @@ public abstract class Type {
 	public static Klass string = new Klass("String");
 	public static Klass klass = new Klass("Class");
 	public static final Void voyd = Void.v;
+	public static final Nulltype nulle = Nulltype.n;
 
 	public int refsize;	// size of data for primitive types, size of reference for array or object types
 	public int allocsize;	// size of data allocation, if known (will be for objects, probably not for arrays);
@@ -53,7 +54,7 @@ public abstract class Type {
 			case CHAR_LIT:	return Primitive.CHAR;
 			case INT_LIT:	return Primitive.INT;	// I guess?
 			case FLOAT_LIT:	return Primitive.FLOAT_LITERAL;
-			case OBJ_LIT:	return objekt;	// is this right? it should probably be a value of every class instead...
+			case OBJ_LIT:	return nulle;	
 			case STR_LIT:	return string;
 		}
 		return null;
@@ -79,6 +80,10 @@ public abstract class Type {
 
 	public final boolean isIntegral () {
 		return isNumeric() && this != Primitive.FLOAT && this != Primitive.DOUBLE;
+	}
+
+	public final boolean isReference () {
+		return (this instanceof Klass) || (this instanceof Array);
 	}
 }
 

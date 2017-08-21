@@ -241,8 +241,8 @@ public class ExprTree extends Tree {
 		String nm = constr ? dtype + " constructor" : "function " + name;
 		System.out.println ("# of possibilities: " + possible.size());
 		if (possible.size() == 1) return possible.get(0);
-		if (possible.isEmpty()) Log.error( new SemanticException ("No viable candidates for " + nm));
-		Log.error( new SemanticException ("Call to " + nm + " is ambiguous (" + possible.size() + " candidates found)"));
+		if (possible.isEmpty()) Log.fatal( new SemanticException ("No viable candidates for " + nm));
+		if (possible.size() > 1) Log.fatal( new SemanticException ("Call to " + nm + " is ambiguous (" + possible.size() + " candidates found)"));
 		return null;	// this may cause problems
 	}
 
