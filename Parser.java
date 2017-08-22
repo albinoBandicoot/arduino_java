@@ -177,7 +177,11 @@ public class Parser {
 						if (ona(Toktype.COMMA)) ;
 					}
 					t.params = (DeclTree) params.base;
-					t.body = block();
+					if (t.ext == Type.Ext.ABSTRACT) {
+						if (!ona(Toktype.SEMICOLON)) Log.error (new ParserException("Expected semicolon after abstract function declaration"));
+					} else {
+						t.body = block();
+					}
 					list.add (t);
 				} else if (ona(Toktype.COMMA)) {
 					list.add (t);

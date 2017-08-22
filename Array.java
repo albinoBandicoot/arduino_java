@@ -56,4 +56,11 @@ public class Array extends Type {
 	public String name () {
 		return this.toString();
 	}
+
+	public boolean equals (Object other) {
+		if (other instanceof Array) {
+			return basetype.equals(((Array) other).basetype);
+		}
+		return false;
+	}
 }

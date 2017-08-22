@@ -121,13 +121,13 @@ public class ExprTree extends Tree {
 			case ID:
 				if (parent.type == Treetype.FUNCALL && this == ((ExprTree) parent).left) {	// the function name, not in a param
 					if (name.equals("this")) {
-						definition = resolveFunction (((Klass) Compiler.currClass.dtype).ctx.funcs.lookupConstructor());
+						definition = resolveFunction (((Klass) Compiler.currClass.dtype).ctx.funcs.lookupConstructor(), "new");
 						if (isStaticContext()) Log.error( new SemanticException ("Cannot reference 'this' from static context"));
 					} else if (name.equals("super")) {
-						definition = resolveFunction (((Klass) Compiler.currClass.dtype).superclass.ctx.funcs.lookupConstructor());
+						definition = resolveFunction (((Klass) Compiler.currClass.dtype).superclass.ctx.funcs.lookupConstructor(), "new");
 						if (isStaticContext()) Log.error( new SemanticException ("Cannot reference 'super' from static context"));
 					} else {
-						definition = ((ExprTree) parent).resolveFunction (ctx.lookupFunc(name, dotchain));
+						definition = ((ExprTree) parent).resolveFunction (ctx.lookupFunc(name, dotchain), name);
 						if (isStaticContext() && !definition.isStatic) Log.error( new SemanticException ("Cannot call non-static function " + name + " from a static context"));
 					}
 					if (!definition.accessOK()) Log.error( new SemanticException (name + " has " + definition.vis + " access and cannot be referenced from this context"));
@@ -169,7 +169,7 @@ public class ExprTree extends Tree {
 				dtype = cast_type;
 				if (dtype instanceof Klass) {
 					// resolve constructor: note this has to be in just the ST for the class, not its parents
-					definition = resolveFunction (((Klass) dtype).ctx.funcs.lookupConstructor());
+					definition = resolveFunction (((Klass) dtype).ctx.funcs.lookupConstructor(), "new");
 					if (!definition.accessOK()) Log.error( new SemanticException (dtype + " constructor has " + definition.vis + " access and cannot be referenced from this context"));
 				} else if (dtype instanceof Array) {
 					if (left != null && left.type == Treetype.AGG) checkAggregate (left, dtype);
@@ -199,7 +199,7 @@ public class ExprTree extends Tree {
 		if (next != null) next.resolveNames(ctx, false);
 	}
 
-	public DeclTree resolveFunction (List<DeclTree> decs) throws CompilerException {
+	public DeclTree resolveFunction (List<DeclTree> decs, String name) throws CompilerException {
 		System.out.println("Tring tyo resolve function. Got candidates: " );
 		for (DeclTree d : decs) {
 			System.out.println("\t* " + d);
@@ -207,8 +207,10 @@ public class ExprTree extends Tree {
 
 		List<DeclTree> possible = new ArrayList<>();
 		int ns = Integer.MAX_VALUE;
+		boolean isStatic = isStaticContext();
 		for (DeclTree d : decs) {
 			System.out.println ("Considering option: " + d + "; parameters: " + nparams() + "; d.nparams: " + d.nparams());
+			if (isStatic && !d.isStatic) continue;
 			if (nparams() != d.nparams()) continue;
 			ExprTree p = params;
 			DeclTree dp = d.params;

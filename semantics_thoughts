@@ -36,16 +36,18 @@ Things to do in/before semantics:
 - check that all paths in a non-void function terminated in a return statement
 * create parent pointers
 * identify block for break and continue
-- check that all abstract methods are implemented in subclasses
-- check that final methods are not overridden
-- check that final classes are not extended
-- check that final variables are not assigned to
+* check that all abstract methods are implemented in subclasses
+* check that final methods are not overridden
+* check that final classes are not extended
+- check that final variables are not assigned to more than once
+	- including things like initialization blocks, constructors, initalization in declaration
 * check access restrictions
 * check for declarations of 'this' and 'super'
 - check for presence of no more than one loop() or setup(), and at least one of either.
 - check for overloaded ISRs / funcs with ISR name that aren't thunks / aren't static
 * check for loops in class hierarchy
 - check for use of uninitialized variables
+- check for static and abstract at same time
 
 - check no aggregate assignment not in an initializer
 

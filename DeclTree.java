@@ -17,6 +17,9 @@ public class DeclTree extends Tree {
 	public Tree body;	// initializer for vardecs, body for fundec and classdec
 	private int nparams = -1;
 	public Symtable scope;
+	public DeclTree enclosingClass;
+
+	public DeclTree override;	// pointer to declaration of the function that this one overrides
 
 	public Tree static_init;	// only for CLASSDECs 
 	public Tree inst_init;
@@ -26,6 +29,7 @@ public class DeclTree extends Tree {
 //		id = ++ID;
 		vis = Vis.PUBLIC;
 		ext = Type.Ext.REG;
+		enclosingClass = Compiler.currClass;
 	}
 
 	public String repr (int d) {
@@ -79,6 +83,20 @@ public class DeclTree extends Tree {
 		return nparams;
 	}
 
+	public boolean pprofMatches (DeclTree d) {
+		if (nparams() != d.nparams()) return false;
+		if (!dtype.equals(d.dtype)) return false;	// compare return types
+		Tree e = params;
+		Tree f = d.params;
+		while (e != null) {	// compare parameter types
+			if (!((DeclTree) e).dtype.equals(((DeclTree) f).dtype)) return false;
+			e = e.next;
+			f = f.next;
+		}
+		return true;
+	}
+
+
 	public Klass classType () throws CompilerException {
 		if (dtype == null) Log.fatal(new InternalError ("Trying get classType of something with a null dtype"));
 		if (dtype instanceof Klass) return (Klass) dtype;
@@ -123,7 +141,7 @@ public class DeclTree extends Tree {
 			if (k.superclass != null) {	// not Object
 				Klass par = Compiler.findKlass (k.superclass.name);
 				if (par == null) Log.error(new SemanticException ("Cannot find class " + k.superclass.name));
-				k.superclass = par;
+				k.linkParent (par);
 			}
 		} else {
 			if (dtype != null) dtype = dtype.resolveKlassPlaceholders(this);

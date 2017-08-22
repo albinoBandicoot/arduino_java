@@ -14,7 +14,13 @@ public class Log {
 	}
 
 	public static void write (String s) {
-		if (level <= INFO) System.out.println (s);
+		if (level <= INFO) {
+//			bold(true);
+			setColor(GREEN);
+			System.out.println (s);
+			setColor(DEFAULT);
+//			bold(false);
+		}
 	}
 
 	public static void warn (CompilerException ex) {
@@ -78,7 +84,11 @@ public class Log {
 
 	private static void setColor (int color) {
 		csi();
-		System.out.print ("9" + color + "m");
+		if (color == 9) {
+			System.out.print ("39m");
+		} else {
+			System.out.print ("9" + color + "m");
+		}
 	}
 
 }

@@ -24,6 +24,7 @@ public class Compiler {
 		str.dtype = Type.string;
 		str.name = "String";
 		Type.string.definition = str;
+		Type.string.superclass = Type.objekt;
 		classes.put ("String", str);
 
 		VarST global_vars = new VarST(null, null);
@@ -61,10 +62,16 @@ public class Compiler {
 			currClass = d;
 			Klass k = d.classType();
 			d.resolveNames (k.ctx);
+			//StringBuffer sb = new StringBuffer();
+			Log.warn ("Subclasses of " + k.name + " are: " + k.subclasses);
 		}
+		Log.nextPhase();
+		
+		Type.objekt.checkOverrides();
+		Log.nextPhase();
+
 		System.out.println (classes.get("Test").repr(0));
 		System.out.println (classes.get("Foo").repr(0));
-		Log.nextPhase();
 
 	}
 }

@@ -4,15 +4,17 @@ public class Klass extends Type {
 	public boolean isLeaf;	// true if final
 	public String name;
 	public Klass superclass;
+	public List<Klass> subclasses;
 	public DeclTree definition;
 
 	public boolean flag;
 
 	public Context ctx;
 
-	public Klass (String name) {	// for making placeholders
+	public Klass (String name) {
 		flag = false;
 		this.name = name;
+		subclasses = new ArrayList<Klass>();
 	}
 
 	public String toString () {
@@ -21,6 +23,12 @@ public class Klass extends Type {
 
 	public String name () {
 		return name;
+	}
+
+	public void linkParent (Klass p) {
+		Log.warn("Adding " + this + " as a subclass of " + p);
+		superclass = p;
+		p.subclasses.add(this);
 	}
 
 	public int implicitConversionSteps (Type t) {
@@ -79,8 +87,9 @@ public class Klass extends Type {
 	public void checkForLoops () throws CompilerException {
 		Klass a = this;
 		Klass b = superclass;
+		if (superclass != null && superclass.definition.ext == Type.Ext.FINAL) Log.error (definition.new SemanticException("Cannot extend final class " + superclass));
 		while (b != null) {
-			if (a == b) throw definition.new SemanticException ("Derived class loop!");
+			if (a == b) Log.fatal(definition.new SemanticException ("Derived class loop!"));
 			a = a.superclass;
 			b = b.superclass;
 			if (b != null) b = b.superclass;
@@ -103,9 +112,40 @@ public class Klass extends Type {
 		while (t != null) {
 			/* Only add functions now. Variable declarations (and recursing into functions) must be done later. */
 			if (t.type == Treetype.FUNDEC) {
+				if (((DeclTree) t).ext == Type.Ext.ABSTRACT && definition.ext != Type.Ext.ABSTRACT) Log.error (t.new SemanticException("Class " + this + " is not abstract, cannot have abstract methods"));
 				ctx.funcs.add ((DeclTree) t);
 			}
 			t = t.next;
+		}
+	}
+
+	class DeclIterator implements Iterator<DeclTree> {
+		private Tree curr;
+		private Treetype type;
+
+		public DeclIterator (Treetype t) {
+			type = t;
+			curr = definition.body;
+		}
+
+		public boolean hasNext () {
+			if (curr == null) return false;
+			Tree t = curr.next;
+			while (t != null) {
+				if (t.type == type) return true;
+				t = t.next;
+			}
+			return false;
+		}
+
+		public DeclTree next () throws NoSuchElementException {
+			curr = curr.next;
+			if (curr == null) throw new NoSuchElementException();
+			while (curr != null) {
+				if (curr.type == type) return (DeclTree) curr;
+				curr = curr.next;
+			}
+			throw new NoSuchElementException();
 		}
 	}
 
@@ -123,4 +163,76 @@ public class Klass extends Type {
 			t = t.next;
 		}
 	}
+
+	private void findOverride (DeclTree t) {
+		Klass s = superclass;
+		while (s != null) {
+			DeclTree d = s.ctx.funcs.findMatching(t);
+			if (d != null && !d.isStatic) {
+				if (d.ext != Type.Ext.FINAL) {
+					t.override = d;
+				} else {
+					Log.error (t.new SemanticException("Cannot override final method"));
+				}
+				return;
+			}
+			s = s.superclass;
+		}
+	}
+
+	public DeclIterator iterator (Treetype t) {
+		return new DeclIterator (t);
+	}
+
+	public void linkOverrides () {
+		DeclIterator i = iterator (Treetype.FUNDEC);
+		while (i.hasNext()) {
+			findOverride (i.next());
+		}
+	}
+
+	public void checkOverrides () {
+		checkOverrides (new ArrayList<DeclTree>());
+	}
+
+	// check that all abstract methods are implemented if class not abstract. This is a top-down pass.
+	private void checkOverrides (List<DeclTree> pending) {
+		linkOverrides();
+		DeclIterator j = iterator (Treetype.FUNDEC);
+		List<DeclTree> abstract_funcs = new ArrayList<>();
+		abstract_funcs.addAll (pending);
+
+		Log.write ("Class " + name + ": pending abstract funcs: " + abstract_funcs);
+		// remove methods that we've implemented
+		while (j.hasNext()) {
+			DeclTree t = j.next();
+			if (t.ext != Type.Ext.ABSTRACT && t.override != null) {
+				abstract_funcs.remove(t.override);
+			}
+		}
+		Log.write ("after removal of implemeneted methods: " + abstract_funcs);
+
+		// if abstract class, add all abstract methods
+		if (definition.ext == Type.Ext.ABSTRACT) {
+			DeclIterator i = iterator (Treetype.FUNDEC);
+			while (i.hasNext()) {
+				DeclTree t = i.next();
+				if (t.ext == Type.Ext.ABSTRACT) {
+					abstract_funcs.add (t);
+				}
+			}
+		} else {
+			for (DeclTree d : abstract_funcs) {	// should be empty.
+				Log.error (definition.new SemanticException("Class " + name + " is not abstract and does not override method " + d + " in class " + d.enclosingClass));
+			}
+		}
+
+		// check subclasses
+		for (Klass k : subclasses) {
+			k.checkOverrides(abstract_funcs);
+		}
+	}
+
+
 }
+

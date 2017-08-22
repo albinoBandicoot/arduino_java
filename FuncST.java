@@ -26,6 +26,12 @@ public class FuncST extends Symtable {
 		String s = d.name;
 		if (d.type != Treetype.FUNDEC) throw new InternalError ("Adding a non-FUNDEC to a FuncST");
 		if (entries.get(s) != null) {
+			for (DeclTree t : entries.get(s)) {
+				if (t.pprofMatches (d)) {
+					Log.error (d.new SemanticException("A function with this name and parameter profile already exists in this scope"));
+					return;
+				}
+			}
 			entries.get(s).add(d);
 			Log.write ("Added " + d + " to " + this + "  <overloaded>");
 		} else {
@@ -50,6 +56,15 @@ public class FuncST extends Symtable {
 			return parent.lookup(s);
 		}
 		return list;
+	}
+
+	// find a function with the same name and profile in the current context. Useful for searching for
+	// overridden functions
+	public DeclTree findMatching (DeclTree d) {
+		for (DeclTree t : lookup(d.name)) {
+			if (t.pprofMatches(d)) return t;
+		}
+		return null;
 	}
 
 	public String repr () {
