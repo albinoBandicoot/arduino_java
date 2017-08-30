@@ -142,8 +142,11 @@ public class Parser {
 				t.vis = tok.lexeme.equals("public") ? DeclTree.Vis.PUBLIC : DeclTree.Vis.PRIVATE;
 				advance();
 			}
+			if (ona(Toktype.NATIVE)) t.isNative = true;
 			t.isStatic = ona(Toktype.STATIC);
+			if (ona(Toktype.NATIVE)) t.isNative = true;
 			t.ext = ext();
+			if (ona(Toktype.NATIVE)) t.isNative = true;
 			Type dectype = type();
 			t.dtype = dectype;
 			boolean cont = true;
@@ -179,6 +182,8 @@ public class Parser {
 					t.params = (DeclTree) params.base;
 					if (t.ext == Type.Ext.ABSTRACT) {
 						if (!ona(Toktype.SEMICOLON)) Log.error (new ParserException("Expected semicolon after abstract function declaration"));
+					} else if (t.isNative) {
+						if (!ona(Toktype.SEMICOLON)) Log.error(new ParserException("Expected semicolon after native function declaration"));
 					} else {
 						t.body = block();
 					}

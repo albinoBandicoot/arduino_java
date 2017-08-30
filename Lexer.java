@@ -370,6 +370,8 @@ public class Lexer {
 //		if ((t = attempt ("super", Toktype.SUPER)) != null) return t;
 		if ((t = attempt ("abstract", Toktype.ABSTRACT)) != null) return t;
 		if ((t = attempt ("final", Toktype.FINAL)) != null) return t;
+		if ((t = attempt ("native", Toktype.NATIVE)) != null) return t;
+
 
 		// identifier
 		if (isIDStartChar (peek.get())) {

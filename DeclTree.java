@@ -1,7 +1,7 @@
 import java.util.*;
 public class DeclTree extends Tree {
 
-	public enum Vis {
+    public enum Vis {
 		PUBLIC, PROTECTED, PRIVATE;
 	}
 
@@ -11,6 +11,7 @@ public class DeclTree extends Tree {
 	public String name;
 	public Vis vis;
 	public boolean isStatic = true;
+	public boolean isNative;
 	public Type.Ext ext;
 	public Type dtype;	// type for variable or return type for function or object type for class (which will contain everything)
 	public DeclTree params;	// use next pointer to access all params. Only used for FUNDEC nodes
