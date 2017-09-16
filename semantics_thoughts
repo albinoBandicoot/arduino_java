@@ -7,7 +7,8 @@ x static vars in methods?
 * multiple static/instance init blocks?
 - handling implicit parameter of instance methods - did I do this?
 x foreach?
-- 'native' indicator 
+- 'native' indicator
+- pragmas?
 
 
 (1) * Resolve Klass placeholders

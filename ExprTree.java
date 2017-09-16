@@ -50,6 +50,11 @@ public class ExprTree extends Tree {
 		return nparams;
 	}
 
+	public boolean isValidStatement () {
+		return op.type.isOpEq() || op.type == Toktype.ASSIGN || type == Treetype.FUNCALL || op.type == Toktype.INC || op.type == Toktype.DEC ||
+				type == Treetype.OP && (op.type == Toktype.DOT && right.type == Treetype.FUNCALL);
+	}
+
 
 	public void makeParentLink (Tree p) {
 		parent = p;

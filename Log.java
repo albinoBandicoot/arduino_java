@@ -39,6 +39,7 @@ public class Log {
 
 	public static void error (CompilerException ex) {
 		error (ex.mesg);
+		ex.printStackTrace();
 	}
 
 	public static void error (String s) {
