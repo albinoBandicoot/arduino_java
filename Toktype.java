@@ -15,7 +15,9 @@ public enum Toktype {
 	
 	STATIC, ABSTRACT, FINAL, NATIVE,
 
-	THIS, SUPER, 
+	THIS, SUPER,
+
+	PRAGMA,
 
 	EOF;
 

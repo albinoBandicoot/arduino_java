@@ -6,6 +6,7 @@ public abstract class Tree {
 	public Tree parent;
 	public DeclTree enclosingFunc;
 	public Marker mark;
+	public PragmaSet pragmas;
 	public int id;
 
 	private static int ID = 0;
@@ -20,6 +21,7 @@ public abstract class Tree {
 		type = t;
 		mark = Parser.getMarker();
 		id = ID++;
+		pragmas = new PragmaSet();
 	}
 
 	public abstract String repr (int depth);

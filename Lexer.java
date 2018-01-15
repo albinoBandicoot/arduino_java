@@ -371,6 +371,7 @@ public class Lexer {
 		if ((t = attempt ("abstract", Toktype.ABSTRACT)) != null) return t;
 		if ((t = attempt ("final", Toktype.FINAL)) != null) return t;
 		if ((t = attempt ("native", Toktype.NATIVE)) != null) return t;
+		if ((t = attempt ("pragma", Toktype.PRAGMA)) != null) return t;
 
 
 		// identifier
