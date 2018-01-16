@@ -1,0 +1,70 @@
+high level linear 3 address code
+
+- probably not SSA for now
+- names are symbolic (or are indices into tables of locals/globals/member variables/whatever; probably with pointers back to parse tree?)
+- unlimited register memory model?
+
+How big of a chunk do we generate this for?
+-> method
+- basic block
+
+Operations:
+(arithmetic)
+(bitwise/boolean)
+jump to label
+conditional branch
+subscript
+field reference
+type conversion
+instanceof
+static function call (constructors/delete are special cases of this)
+member function call
+return
+
+Operations are: OPCODE L1 L2 L3
+where L1, L2, and L3 are Locations
+
+Types of Location:
+- constant
+- virtual register
+- parameter
+- global
+- field identifier/offset
+- member function identifier/offset
+- code label
+
+How do we organize all the little code snippets we generate? Link back to AST?
+- each FUNDEC/static initializer with a body has a pointer to a block of IL code
+-
+
+
+At some point, we need to layout the fields in classes, as well as the static members in Klasses, and the entries in the method tables for classes
+
+Decide on an object layout:
+0: pointer to type.Klass record (descriptor)
+2: fields (subclass fields appended to end)
+
+type.Klass record:
+0: pointer to superclass record (to implement instanceof and super references)
+2: start of virtual function table. Entry is location of start of function #i for this class. Subclass functions appended. Overrides
+    edit values in the superclass section of the table.
+
+Probably don't need a VFT for abstract classes
+
+Static fields and methods (including constructors) all go in one big pile somewhere. Static fields referenced through variables do not go through dynamic lookup, so these
+all just get assigned addresses in memory.
+
+Memory layout:
+
+RAM:
+<low memory>: registers and I/O
+[constants (could put in flash)]
+[type.Klass records]
+[global variables]
+[heap, growing upward]
+[stack, growing downward]
+
+Flash:
+[interrupt vector?]
+[static methods]
+[member functions]

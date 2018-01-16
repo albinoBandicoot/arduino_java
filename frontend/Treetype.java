@@ -1,0 +1,12 @@
+package frontend;
+
+public enum Treetype {
+	
+	VARDEC, FUNDEC, CLASSDEC, 
+
+	OP, ID, CAST, NEW, DELETE, VALUE, AGG, FUNCALL, ASSIGN, PARENS, TYPE,
+
+	IF, WHILE, DO, FOR, SWITCH, RETURN, BREAK, CONTINUE, BLOCK;
+
+}
+
